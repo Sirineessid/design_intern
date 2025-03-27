@@ -2,7 +2,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import tailwindcss from "tailwindcss";
+import { customComponentTagger } from "./src/utils/componentTagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -12,13 +12,11 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    mode === 'development' &&
-    componentTagger(),
+    mode === 'development' && customComponentTagger(),
   ].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-    extensions: ['.js', '.jsx','.ts' , '.tsx'],
   },
 }));
