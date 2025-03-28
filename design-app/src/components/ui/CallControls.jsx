@@ -91,10 +91,12 @@ const CallControls = ({
         >
           <Layout size={20} />
         </button>
-        
+        {/* This button changes the layout when clicked */}
         <button 
           className="call-control-button bg-gray-600 text-white hover:bg-gray-700"
         >
+          {/*vertical three-dot menu*/}
+          {/* This button represents additional options but has no onClick event */}
           <MoreVertical size={20} />
         </button>
       </div>
