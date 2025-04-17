@@ -1,4 +1,3 @@
-
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
@@ -14,9 +13,15 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === 'development' && customComponentTagger(),
   ].filter(Boolean),
+  css: {
+    postcss: './postcss.config.js', // Ensure PostCSS config is loaded
+  },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      "@": path.resolve(__dirname, "src"),
     },
+  },
+  hmr: {
+    overlay: false,
   },
 }));
