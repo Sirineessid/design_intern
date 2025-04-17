@@ -259,80 +259,37 @@ const Index = () => {
                   size="sm" 
                   status="online" 
                 />
-                <span className="text-sm font-medium">Robert Dwane</span>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500"><path d="m6 9 6 6 6-6"/></svg>
+                <span className="text-xs text-gray-500">Online</span>
               </div>
             </div>
           </div>
         </header>
         
-        {/* Main call area */}
-        <div className="flex-1 overflow-hidden flex">
-          <div className={`flex-1 ${showChat || showParticipants ? 'lg:mr-0' : ''} p-6`}>
-            <div className="h-full flex flex-col">
-              {/* Video conference UI */}
-              <div className="flex-1 rounded-xl overflow-hidden">
-                <VideoCall 
-                  participants={participants} 
-                  mainParticipant={mainParticipant} 
-                  callDuration={callDuration}
-                />
-              </div>
-              
-              {/* Participant stats */}
-              <div className="mt-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2 p-2 rounded-md bg-white shadow-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                    <span className="text-sm font-medium">On-Call Participants</span>
-                    <span className="inline-block px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 text-xs">
-                      {participants.length}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center gap-2 p-2 rounded-md bg-white shadow-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="8" y1="3" x2="10" y2="11"/></svg>
-                    <span className="text-sm font-medium">Absent Participants</span>
-                    <span className="inline-block px-2 py-0.5 rounded-full bg-red-100 text-red-800 text-xs">
-                      {absentParticipants.length}
-                    </span>
-                  </div>
-                </div>
-                
-                <button 
-                  className="p-2 rounded-md bg-brand-blue hover:bg-blue-600 text-white text-sm flex items-center gap-2 transition-colors duration-200"
-                  onClick={handleAddUser}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-                  Add user to call
-                </button>
-              </div>
+        <main className="flex-1 flex overflow-hidden">
+          {/* Video Call */}
+          <div className="flex-1 p-3 bg-white border-r border-gray-200">
+            <VideoCall mainParticipant={mainParticipant} />
+          </div>
+          
+          {/* Chat Panel */}
+          {showChat && (
+            <div className="w-96 bg-white p-4 border-l border-gray-200">
+              <ChatPanel messages={messages} onSendMessage={handleSendMessage} />
             </div>
-          </div>
+          )}
           
-          {/* Right panel with tabs */}
-          <div className={`flex ${showChat ? 'w-96' : 'w-0 opacity-0'} transition-all duration-300 overflow-hidden`}>
-            <ChatPanel 
-              title="Group Chat" 
-              messages={messages} 
-              onSendMessage={handleSendMessage}
-              showParticipants={showParticipants}
-              onToggleParticipants={() => setShowParticipants(!showParticipants)}
-            />
-          </div>
-          
-          {/* Participants panel */}
-          <div className={`flex ${showParticipants ? 'w-80' : 'w-0 opacity-0'} transition-all duration-300 overflow-hidden`}>
-            <div className="w-full p-6 bg-white border-l border-gray-200 shadow-lg animate-slide-in-right">
+          {/* Participants List */}
+          {showParticipants && (
+            <div className="w-80 bg-white p-4 border-l border-gray-200">
               <ParticipantsList 
-                onCall={participants.map(p => ({...p, status: p.status || 'online'}))} 
-                absent={absentParticipants} 
-                onAddUser={handleAddUser}
-                onRefresh={handleRefreshParticipants}
+                participants={participants} 
+                absentParticipants={absentParticipants} 
+                onRefreshParticipants={handleRefreshParticipants} 
+                onAddUser={handleAddUser} 
               />
             </div>
-          </div>
-        </div>
+          )}
+        </main>
       </div>
     </div>
   );

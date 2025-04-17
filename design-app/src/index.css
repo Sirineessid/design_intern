@@ -89,7 +89,8 @@
   }
   
   .sidebar-icon {
-    @apply w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 hover:bg-muted;
+    @apply w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 hover:bg-gray-100;
+
   }
   
   .animate-in {

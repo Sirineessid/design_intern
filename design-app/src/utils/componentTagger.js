@@ -1,9 +1,8 @@
-
 // Custom component tagger that adds data attributes to components for debugging
 import { createFilter } from '@rollup/pluginutils';
 
 export function customComponentTagger() {
-  const fileFilter = createFilter(['**/*.jsx', '**/*.tsx'], 'node_modules/**');
+  const fileFilter = createFilter(['**/*.js', '**/*.jsx'], 'node_modules/**');
   
   return {
     name: 'custom-component-tagger',
