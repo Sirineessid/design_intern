@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => ({
     mode === 'development' && customComponentTagger(),
   ].filter(Boolean),
   css: {
-    postcss: './postcss.config.js', // Ensure PostCSS config is loaded
+    postcss: './postcss.config.js',
   },
   resolve: {
     alias: {
@@ -23,5 +23,9 @@ export default defineConfig(({ mode }) => ({
   },
   hmr: {
     overlay: false,
+  },
+  esbuild: {
+    loader: "jsx",            // Treat .js files as JSX
+    include: /src\/.*\.js$/,  // Apply this rule to .js files in the /src folder
   },
 }));
