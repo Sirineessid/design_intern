@@ -28,4 +28,10 @@ export default defineConfig(({ mode }) => ({
     loader: "jsx",            // Treat .js files as JSX
     include: /src\/.*\.js$/,  // Apply this rule to .js files in the /src folder
   },
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  }
 }));
