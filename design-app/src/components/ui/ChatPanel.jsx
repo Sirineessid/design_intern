@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronRight, Users } from 'lucide-react';
-import MessageBubble from './MessageBubble';
-import MessageInput from './MessageInput';
+import MessageBubble from './MessageBubble.jsx';
+import MessageInput from './MessageInput.jsx';
 import Avatar from './Avatar';
 import { cn } from '@/lib/utils';
 

@@ -1,8 +1,8 @@
 import React from 'react';
-import Badge from './Badge';
-import Avatar from './Avatar';
+import Badge from './Badge.jsx';
+import Avatar from './Avatar.jsx';
 import { UserPlus, User, RefreshCw, UserX, Mail } from 'lucide-react';
-import { Button } from './ui/button';
+/*import { Button } from './ui/button';*/
 import { toast } from 'sonner';
 
 const ParticipantsList = ({
