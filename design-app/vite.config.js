@@ -21,9 +21,7 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "src"),
     },
   },
-  hmr: {
-    overlay: false,
-  },
+
   esbuild: {
     loader: "jsx",            // Treat .js files as JSX
     include: /src\/.*\.js$/,  // Apply this rule to .js files in the /src folder

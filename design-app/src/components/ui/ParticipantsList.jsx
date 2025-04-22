@@ -6,8 +6,8 @@ import { UserPlus, User, RefreshCw, UserX, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 
 const ParticipantsList = ({
-  onCall,
-  absent,
+  onCall =[],
+  absent =[],
   onAddUser,
   onRefresh,
   onSendReminder

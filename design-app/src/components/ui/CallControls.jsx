@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Mic, MicOff, Video, VideoOff, PhoneOff, ScreenShare, Layout, MoreVertical, Volume2 } from 'lucide-react';
-import { cn } from '../../lib/utils';
+import { cn } from './lib/utils';
 
 const CallControls = ({
   onMicToggle,
