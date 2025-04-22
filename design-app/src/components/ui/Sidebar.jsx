@@ -1,6 +1,6 @@
 import React from 'react';
 import { Video, Mail, BarChart2, Calendar, Settings, Users, GridIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from './lib/utils';
 
 const Sidebar = ({ activeItem = 'video', onItemClick }) => {
   const items = [

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft } from 'lucide-react';
-import Sidebar from '@/components/ui/Sidebar.jsx';
-import VideoCall from '@/components/ui/VideoCall.jsx';
-import ChatPanel from '@/components/ui/ChatPanel.jsx';
-import ParticipantsList from '@/components/ui/ParticipantsList.jsx';
-import Avatar from '@/components/ui/Avatar.jsx';
+import Sidebar from '../components/ui/Sidebar.jsx';
+import VideoCall from '../components/ui/Sidebar.jsx';
+import ChatPanel from '../components/ui/ChatPanel.jsx';
+import ParticipantsList from '../components/ui/ParticipantsList.jsx';
+import Avatar from '../components/ui/Avatar.jsx';
 import { toast } from 'sonner';
 
 const Index = () => {
