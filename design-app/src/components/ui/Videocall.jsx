@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import VideoParticipant from './VideoParticipant.jsx';
 import CallControls from './CallControls.jsx';
-import { cn } from './lib/utils';
+import { cn } from '../../lib/utils';
 
 const VideoCall = ({
-  participants,
-  mainParticipant,
+  participants =[],
+  mainParticipant ={},
   callDuration
 }) => {
   const [isMuted, setIsMuted] = useState(false);

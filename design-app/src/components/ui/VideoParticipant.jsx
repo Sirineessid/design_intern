@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Mic, MicOff, Video, VideoOff } from 'lucide-react';
-import { cn } from './lib/utils';
+import { cn } from '../../lib/utils';
 
 const VideoParticipant = ({
   src,

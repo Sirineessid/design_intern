@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import Sidebar from '../components/ui/Sidebar.jsx';
-import VideoCall from '../components/ui/Sidebar.jsx';
+import VideoCall from '../components/ui/Videocall.jsx';
 import ChatPanel from '../components/ui/ChatPanel.jsx';
 import ParticipantsList from '../components/ui/ParticipantsList.jsx';
 import Avatar from '../components/ui/Avatar.jsx';
