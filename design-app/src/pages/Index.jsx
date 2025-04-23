@@ -8,12 +8,10 @@ import Avatar from '../components/ui/Avatar.jsx';
 import { toast } from 'sonner';
 
 const Index = () => {
-  const [activeItem, setActiveItem] = useState('video');
+  const [selectedTab, setSelectedTab] = useState('groupChat');
   const [callDuration, setCallDuration] = useState('00:04:32');
-  const [showChat, setShowChat] = useState(true);
-  const [showParticipants, setShowParticipants] = useState(true);
   const [meetingTitle, setMeetingTitle] = useState('UI/UX Design weekly update');
-  
+
   // Mock data for participants
   const mainParticipant = {
     id: '1',
@@ -23,7 +21,7 @@ const Index = () => {
     isMuted: false,
     isVideoOff: false
   };
-  
+
   const [participants, setParticipants] = useState([
     {
       id: '2',
@@ -71,7 +69,7 @@ const Index = () => {
       status: 'online'
     }
   ]);
-  
+
   const [absentParticipants, setAbsentParticipants] = useState([
     {
       id: '7',
@@ -92,7 +90,7 @@ const Index = () => {
       status: 'offline'
     }
   ]);
-  
+
   // Mock data for messages
   const [messages, setMessages] = useState([
     {
@@ -227,10 +225,14 @@ const Index = () => {
 
   return (
     <div className="flex h-screen w-full bg-gray-50 overflow-hidden">
-      {/* Left sidebar */}
-      <Sidebar activeItem={activeItem} onItemClick={setActiveItem} />
-      
-      {/* Main content */}
+      {/* Left Sidebar */}
+      <Sidebar
+        callDuration={callDuration}
+        onCallCount={participants.length}
+        absentCount={absentParticipants.length}
+      />
+
+      {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
         <header className="bg-white border-b border-gray-200 py-3 px-6 flex items-center justify-between">
@@ -238,7 +240,6 @@ const Index = () => {
             <button className="mr-3 p-2 rounded-full hover:bg-gray-100 transition-colors">
               <ChevronLeft size={20} className="text-gray-600" />
             </button>
-            
             <div className="flex items-center">
               <h1 className="text-lg font-medium">{meetingTitle}</h1>
               <div className="ml-3 px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-medium">
@@ -246,49 +247,81 @@ const Index = () => {
               </div>
             </div>
           </div>
-          
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
             <div className="flex items-center">
-              <div className="text-sm text-gray-600 mr-2">
-                Publisher
-              </div>
+              <div className="text-sm text-gray-600 mr-2">Publisher</div>
               <div className="flex items-center gap-2">
-                <Avatar 
-                  src="https://randomuser.me/api/portraits/men/44.jpg" 
-                  alt="Robert Dwane" 
-                  size="sm" 
-                  status="online" 
+                <Avatar
+                  src="https://randomuser.me/api/portraits/men/44.jpg"
+                  alt="Robert Dwane"
+                  size="sm"
+                  status="online"
                 />
                 <span className="text-xs text-gray-500">Online</span>
               </div>
             </div>
+            {/* Tabs */}
+            <div className="flex space-x-4 ml-4">
+              <button
+                onClick={() => setSelectedTab('groupChat')}
+                className={selectedTab === 'groupChat' ? 'text-green-500 border-b-2 border-green-500' : ''}
+              >
+                Group Chat
+              </button>
+              <button
+                onClick={() => setSelectedTab('messages')}
+                className={selectedTab === 'messages' ? 'text-green-500 border-b-2 border-green-500' : ''}
+              >
+                Messages
+              </button>
+              <button
+                onClick={() => setSelectedTab('participants')}
+                className={selectedTab === 'participants' ? 'text-green-500 border-b-2 border-green-500' : ''}
+              >
+                Participants
+              </button>
+            </div>
           </div>
         </header>
-        
+
+        {/* Main Content */}
         <main className="flex-1 flex overflow-hidden">
           {/* Video Call */}
           <div className="flex-1 p-3 bg-white border-r border-gray-200">
-            <VideoCall mainParticipant={mainParticipant} />
+            <VideoCall mainParticipant={mainParticipant} participants={participants} />
           </div>
-          
-          {/* Chat Panel */}
-          {showChat && (
-            <div className="w-96 bg-white p-4 border-l border-gray-200">
-              <ChatPanel messages={messages} onSendMessage={handleSendMessage} />
-            </div>
-          )}
-          
-          {/* Participants List */}
-          {showParticipants && (
-            <div className="w-80 bg-white p-4 border-l border-gray-200">
-              <ParticipantsList 
-                participants={participants} 
-                absentParticipants={absentParticipants} 
-                onRefreshParticipants={handleRefreshParticipants} 
-                onAddUser={handleAddUser} 
-              />
-            </div>
-          )}
+
+          {/* Right Panel */}
+          <div className="w-[400px] bg-white p-4 border-l border-gray-200">
+            {selectedTab === 'groupChat' && (
+              <div className="flex h-full">
+                <div className="flex-1 overflow-y-auto">
+                  <ChatPanel messages={messages} onSendMessage={handleSendMessage} />
+                </div>
+                <div className="w-64 ml-4 overflow-y-auto">
+                  <ParticipantsList
+                    participants={participants}
+                    absentParticipants={absentParticipants}
+                    onRefreshParticipants={handleRefreshParticipants}
+                    onAddUser={handleAddUser}
+                  />
+                </div>
+              </div>
+            )}
+            {selectedTab === 'messages' && (
+              <div className="h-full flex items-center justify-center">Messages tab content</div>
+            )}
+            {selectedTab === 'participants' && (
+              <div className="h-full">
+                <ParticipantsList
+                  participants={participants}
+                  absentParticipants={absentParticipants}
+                  onRefreshParticipants={handleRefreshParticipants}
+                  onAddUser={handleAddUser}
+                />
+              </div>
+            )}
+          </div>
         </main>
       </div>
     </div>
