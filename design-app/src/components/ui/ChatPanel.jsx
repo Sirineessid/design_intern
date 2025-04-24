@@ -181,5 +181,4 @@ const ChatPanel = ({
     </div>
   );
 };
-
 export default ChatPanel;

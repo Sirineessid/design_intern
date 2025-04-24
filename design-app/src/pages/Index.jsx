@@ -168,9 +168,9 @@ const Index = () => {
       isCurrentUser: true,
       status: 'read'
     };
-    
+
     setMessages([...messages, newMessage]);
-    
+
     // Simulate receiving a response after a short delay
     if (messages.length % 3 === 0) {
       setTimeout(() => {
@@ -182,7 +182,7 @@ const Index = () => {
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ', Williams',
           isCurrentUser: false
         };
-        
+
         setMessages(prev => [...prev, responseMessage]);
       }, 3000);
     }
@@ -214,113 +214,41 @@ const Index = () => {
       const totalSeconds = minutes * 60 + seconds + 1;
       const newMinutes = Math.floor(totalSeconds / 60);
       const newSeconds = totalSeconds % 60;
-      
+
       setCallDuration(
         `${newMinutes.toString().padStart(2, '0')}:${newSeconds.toString().padStart(2, '0')}`
       );
     }, 1000);
-    
+
     return () => clearInterval(timer);
   }, [callDuration]);
 
   return (
     <div className="flex h-screen w-full bg-gray-50 overflow-hidden">
-      {/* Left Sidebar */}
       <Sidebar
-        callDuration={callDuration}
+        meetingTitle={meetingTitle}
+        teamName="Design Team"
         onCallCount={participants.length}
         absentCount={absentParticipants.length}
       />
-
-      {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="bg-white border-b border-gray-200 py-3 px-6 flex items-center justify-between">
-          <div className="flex items-center">
-            <button className="mr-3 p-2 rounded-full hover:bg-gray-100 transition-colors">
-              <ChevronLeft size={20} className="text-gray-600" />
-            </button>
-            <div className="flex items-center">
-              <h1 className="text-lg font-medium">{meetingTitle}</h1>
-              <div className="ml-3 px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-medium">
-                Design Team
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center">
-              <div className="text-sm text-gray-600 mr-2">Publisher</div>
-              <div className="flex items-center gap-2">
-                <Avatar
-                  src="https://randomuser.me/api/portraits/men/44.jpg"
-                  alt="Robert Dwane"
-                  size="sm"
-                  status="online"
-                />
-                <span className="text-xs text-gray-500">Online</span>
-              </div>
-            </div>
-            {/* Tabs */}
-            <div className="flex space-x-4 ml-4">
-              <button
-                onClick={() => setSelectedTab('groupChat')}
-                className={selectedTab === 'groupChat' ? 'text-green-500 border-b-2 border-green-500' : ''}
-              >
-                Group Chat
-              </button>
-              <button
-                onClick={() => setSelectedTab('messages')}
-                className={selectedTab === 'messages' ? 'text-green-500 border-b-2 border-green-500' : ''}
-              >
-                Messages
-              </button>
-              <button
-                onClick={() => setSelectedTab('participants')}
-                className={selectedTab === 'participants' ? 'text-green-500 border-b-2 border-green-500' : ''}
-              >
-                Participants
-              </button>
-            </div>
-          </div>
-        </header>
-
-        {/* Main Content */}
         <main className="flex-1 flex overflow-hidden">
-          {/* Video Call */}
           <div className="flex-1 p-3 bg-white border-r border-gray-200">
-            <VideoCall mainParticipant={mainParticipant} participants={participants} />
+            <VideoCall mainParticipant={mainParticipant} participants={participants} callDuration={callDuration} />
+            {/* Time Recorder on the Host Screen */}
+            <div className="absolute top-4 left-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded-lg text-sm">
+              {callDuration}
+            </div>
           </div>
-
-          {/* Right Panel */}
           <div className="w-[400px] bg-white p-4 border-l border-gray-200">
-            {selectedTab === 'groupChat' && (
-              <div className="flex h-full">
-                <div className="flex-1 overflow-y-auto">
-                  <ChatPanel messages={messages} onSendMessage={handleSendMessage} />
-                </div>
-                <div className="w-64 ml-4 overflow-y-auto">
-                  <ParticipantsList
-                    participants={participants}
-                    absentParticipants={absentParticipants}
-                    onRefreshParticipants={handleRefreshParticipants}
-                    onAddUser={handleAddUser}
-                  />
-                </div>
-              </div>
-            )}
-            {selectedTab === 'messages' && (
-              <div className="h-full flex items-center justify-center">Messages tab content</div>
-            )}
-            {selectedTab === 'participants' && (
-              <div className="h-full">
-                <ParticipantsList
-                  participants={participants}
-                  absentParticipants={absentParticipants}
-                  onRefreshParticipants={handleRefreshParticipants}
-                  onAddUser={handleAddUser}
-                />
-              </div>
-            )}
+            <div className="flex space-x-4 mb-4">
+              <button onClick={() => setSelectedTab('groupChat')} className={selectedTab === 'groupChat' ? 'text-green-500 border-b-2 border-green-500' : ''}>Group Chat</button>
+              <button onClick={() => setSelectedTab('messages')} className={selectedTab === 'messages' ? 'text-green-500 border-b-2 border-green-500' : ''}>Messages</button>
+              <button onClick={() => setSelectedTab('participants')} className={selectedTab === 'participants' ? 'text-green-500 border-b-2 border-green-500' : ''}>Participants</button>
+            </div>
+            {selectedTab === 'groupChat' && <ChatPanel messages={messages} onSendMessage={handleSendMessage} />}
+            {selectedTab === 'messages' && <div>Messages Tab Content</div>}
+            {selectedTab === 'participants' && <ParticipantsList participants={participants} absentParticipants={absentParticipants} />}
           </div>
         </main>
       </div>
