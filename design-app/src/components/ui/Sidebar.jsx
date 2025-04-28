@@ -29,10 +29,6 @@ const Sidebar = ({ meetingTitle, teamName, onCallCount, absentCount }) => {
           <div className="text-xs font-medium text-purple-800 bg-purple-100 px-2 py-1 rounded-full inline-block">{teamName}</div>
         </div>
       </div>
-      <div className="p-4 border-t border-gray-200">
-        <div className="text-green-500 text-sm">On-Call Participants: {onCallCount}</div>
-        <div className="text-red-500 text-sm">Absent Participants: {absentCount}</div>
-      </div>
       <div className="p-4 flex flex-col space-y-4">
         {items.map((item) => {
           const Icon = item.icon;

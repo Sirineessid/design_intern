@@ -42,7 +42,7 @@ const VideoCall = ({
           </div>
           <div className="flex items-center gap-1 text-sm text-gray-700">
             <span className="font-medium">Absent Participants:</span>
-            <span className="text-red-500">3</span>
+            <span className="text-red-500">3</span>{/*you can make it dynamically   */}
           </div>
           <button className="bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 rounded-full">
             + Add user to call
