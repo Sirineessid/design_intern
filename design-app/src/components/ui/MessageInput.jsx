@@ -19,28 +19,30 @@ const MessageInput = ({ onSend }) => {
   };
 
   return (
-    <div className="relative flex items-center gap-2 p-2 rounded-full bg-gray-100 border border-gray-200">
-      <button className="p-2 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition">
+    <div className="relative flex items-center gap-2 p-2 bg-gray-100 rounded-full shadow-sm">
+      <button className="text-gray-500 hover:text-blue-600">
         <Paperclip size={20} />
       </button>
-      
+
       <input
         type="text"
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder="Type message..."
-        className="flex-grow px-2 py-2 bg-transparent border-none focus:outline-none"
+        placeholder="Type a message..."
+        className="flex-1 bg-transparent outline-none px-2"
       />
-      
-      <button className="p-2 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition">
+
+      <button className="text-gray-500 hover:text-blue-600">
         <Smile size={20} />
       </button>
-      
+
       <button
         onClick={handleSend}
         disabled={!message.trim()}
-        className={`p-2 rounded-full ${message.trim() ? 'bg-brand-blue text-white' : 'bg-gray-300 text-gray-500'} transition-all duration-200`}
+        className={`p-2 rounded-full ${
+          message.trim() ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-500'
+        } transition duration-200`}
       >
         <Send size={20} />
       </button>
