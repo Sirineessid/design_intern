@@ -96,14 +96,14 @@ const VideoCall = ({
               isMuted={participant.isMuted}
               isVideoOff={participant.isVideoOff}
               isScreenSharing={participant.isScreenSharing}
-              size="sm"
+              size="md"
               className="transition-transform hover:scale-105"
             />
           ))}
 
           {participants.length > 5 && (
             <div className="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center text-white text-xs">
-              +{participants.length - 5}
+              +{participants.length - 5} More 
             </div>
           )}
         </div>
