@@ -1,26 +1,38 @@
-import { Toaster } from "./components/ui/toaster.jsx";
-import { Toaster as Sonner } from "./components/ui/sonner.jsx";
-import { TooltipProvider } from "./components/ui/toolip.jsx";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index.jsx";
-import NotFound from "./pages/NotFound.jsx";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Auth from './components/ui/Auth';
+import Index from './pages/Index';
+import { Toaster } from 'sonner';
+import { SocketProvider } from './context/SocketContext';
 
-const queryClient = new QueryClient();
+const App = () => {
+  const isAuthenticated = !!localStorage.getItem('token');
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
+  return (
+    <Router>
+      <SocketProvider>
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="*" element={<NotFound />} />
+          <Route 
+            path="/" 
+            element={isAuthenticated ? <Navigate to="/meeting" /> : <Navigate to="/auth" />} 
+          />
+          <Route 
+            path="/auth" 
+            element={isAuthenticated ? <Navigate to="/meeting" /> : <Auth />} 
+          />
+          <Route 
+            path="/meeting" 
+            element={isAuthenticated ? <Index /> : <Navigate to="/auth" />} 
+          />
+          <Route 
+            path="/room/:roomId" 
+            element={isAuthenticated ? <Index /> : <Navigate to="/auth" />} 
+          />
         </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+        <Toaster position="top-right" />
+      </SocketProvider>
+    </Router>
+  );
+};
 
 export default App;

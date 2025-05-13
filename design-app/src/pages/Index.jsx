@@ -1,92 +1,286 @@
 import React, { useState, useEffect } from 'react';
-import Sidebar from '../components/ui/Sidebar.jsx';
-import VideoCall from '../components/ui/Videocall.jsx';
-import ChatPanel from '../components/ui/ChatPanel.jsx';
+import { Navigate } from 'react-router-dom';
+import Sidebar from '../components/ui/Sidebar';
+import ParticipantsList from '../components/ui/ParticipantsList';
+import VideoCall from '../components/ui/Videocall';
+import ChatPanel from '../components/ui/ChatPanel';
+import MeetingInfo from '../components/ui/MeetingInfo';
+import { useSocket } from '../context/SocketContext';
 import { toast } from 'sonner';
+import '../index.css';
+import { cn } from '../lib/utils';
 
-const Index = () => {
+function Index() {
   const [selectedTab, setSelectedTab] = useState('messages');
-  const [callDuration, setCallDuration] = useState('00:04:32');
+  const [callDuration, setCallDuration] = useState('00:00:00');
+  const [roomId] = useState('room123');
+  const [showMeetingInfo, setShowMeetingInfo] = useState(false);
+  const { socket, isConnected } = useSocket();
 
-  const mainParticipant = {
-    id: '1',
-    name: 'Sophia Chen',
-    avatar: 'https://randomuser.me/api/portraits/women/33.jpg',
-    isSpeaking: true,
+  // Check authentication
+  const user = JSON.parse(localStorage.getItem('user'));
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  // Current user
+  const [currentUser] = useState({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    avatar: user.avatar || 'https://randomuser.me/api/portraits/women/33.jpg',
+    status: 'online',
     isMuted: false,
     isVideoOff: false,
     isScreenSharing: false,
-  };
+    isSpeaking: false
+  });
 
+  // Meeting info
+  const [meetingInfo] = useState({
+    title: "UI/UX Design weekly update",
+    description: "Weekly sync-up meeting to discuss design progress and upcoming tasks",
+    scheduledTime: new Date().toISOString(),
+    hostName: currentUser.name,
+  });
+
+  // Participants state
   const [participants, setParticipants] = useState([
-    { id: '2', name: 'Sarah Wilson', avatar: 'https://randomuser.me/api/portraits/women/44.jpg', isSpeaking: false, isMuted: false, isVideoOff: false, status: 'online' },
-    { id: '3', name: 'Michael Johnson', avatar: 'https://randomuser.me/api/portraits/men/32.jpg', isSpeaking: false, isMuted: true, isVideoOff: false, status: 'online' },
-    { id: '4', name: 'James Rodriguez', avatar: 'https://randomuser.me/api/portraits/men/45.jpg', isSpeaking: false, isMuted: false, isVideoOff: true, status: 'online' },
-    { id: '5', name: 'Emily Brown', avatar: 'https://randomuser.me/api/portraits/women/67.jpg', isSpeaking: false, isMuted: true, isVideoOff: false, status: 'online' },
-    { id: '6', name: 'David Miller', avatar: 'https://randomuser.me/api/portraits/men/75.jpg', isSpeaking: false, isMuted: false, isVideoOff: false, status: 'online' },
-    { id: '7', name: 'Chris Evans', avatar: 'https://randomuser.me/api/portraits/men/77.jpg', isSpeaking: false, isMuted: false, isVideoOff: false, status: 'online' }, // extra for +1 more
+    { 
+      id: '2', 
+      name: 'Sarah Wilson', 
+      avatar: 'https://randomuser.me/api/portraits/women/44.jpg', 
+      status: 'online',
+      isSpeaking: false, 
+      isMuted: false, 
+      isVideoOff: false 
+    },
+    { 
+      id: '3', 
+      name: 'Michael Johnson', 
+      avatar: 'https://randomuser.me/api/portraits/men/32.jpg', 
+      status: 'online',
+      isSpeaking: false, 
+      isMuted: true, 
+      isVideoOff: false 
+    },
+    { 
+      id: '4', 
+      name: 'James Rodriguez', 
+      avatar: 'https://randomuser.me/api/portraits/men/45.jpg', 
+      status: 'offline',
+      isSpeaking: false, 
+      isMuted: false, 
+      isVideoOff: true 
+    },
+    { 
+      id: '5', 
+      name: 'Emily Brown', 
+      avatar: 'https://randomuser.me/api/portraits/women/67.jpg', 
+      status: 'online',
+      isSpeaking: false, 
+      isMuted: true, 
+      isVideoOff: false 
+    }
   ]);
 
-  const [messages, setMessages] = useState([
-    { id: '1', sender: 'Alex Johnson', avatar: 'https://randomuser.me/api/portraits/men/32.jpg', message: 'Hi everyone, lets start the call soon', time: '10:00 am, Alex', isCurrentUser: false },
-    { id: '2', sender: 'Robert Dwane', avatar: 'https://randomuser.me/api/portraits/men/44.jpg', message: "Hey, we're waiting 😊", time: '10:04 am, Robert', isCurrentUser: false },
-    { id: '3', sender: 'You', message: 'Hello all!', time: '10:05 am', isCurrentUser: true, status: 'read' },
-    { id: '4', sender: 'Williams', avatar: 'https://randomuser.me/api/portraits/men/68.jpg', message: 'Are we waiting for absent teammates? Shall we start?', time: '10:10 am, Williams', isCurrentUser: false },
-    { id: '5', sender: 'You', message: 'I think we can start a bit later :)', time: '10:11 am', isCurrentUser: true, status: 'read' },
-    { id: '6', sender: 'Merin', avatar: 'https://randomuser.me/api/portraits/women/64.jpg', message: "I'm typing...", time: '', isCurrentUser: false }, // for typing indicator
-  ]);
+  // Messages state
+  const [messages, setMessages] = useState([]);
 
-  const handleSendMessage = (message) => {
-    const newMessage = {
-      id: (messages.length + 1).toString(),
-      sender: 'You',
-      message,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      isCurrentUser: true,
-      status: 'read',
+  // Socket event handlers
+  useEffect(() => {
+    if (!socket || !isConnected) return;
+
+    // Join room
+    socket.emit('joinRoom', { roomId, user: currentUser });
+
+    // Listen for new participants
+    socket.on('userJoined', (user) => {
+      setParticipants(prev => [...prev, user]);
+      toast.info(`${user.name} joined the call`);
+    });
+
+    // Listen for participant updates
+    socket.on('participantUpdated', (updatedParticipant) => {
+      setParticipants(prev => 
+        prev.map(p => p.id === updatedParticipant.id ? updatedParticipant : p)
+      );
+    });
+
+    // Listen for participant departures
+    socket.on('userLeft', (userId) => {
+      setParticipants(prev => {
+        const user = prev.find(p => p.id === userId);
+        if (user) {
+          toast.info(`${user.name} left the call`);
+        }
+        return prev.filter(p => p.id !== userId);
+      });
+    });
+
+    // Listen for new messages
+    socket.on('newMessage', (message) => {
+      setMessages(prev => [...prev, message]);
+    });
+
+    // Listen for typing indicators
+    socket.on('userTyping', (user) => {
+      setParticipants(prev =>
+        prev.map(p => p.id === user.id ? { ...p, isTyping: true } : p)
+      );
+    });
+
+    socket.on('userStoppedTyping', (user) => {
+      setParticipants(prev =>
+        prev.map(p => p.id === user.id ? { ...p, isTyping: false } : p)
+      );
+    });
+
+    return () => {
+      socket.emit('leaveRoom', { roomId });
+      socket.off('userJoined');
+      socket.off('participantUpdated');
+      socket.off('userLeft');
+      socket.off('newMessage');
+      socket.off('userTyping');
+      socket.off('userStoppedTyping');
     };
-    setMessages([...messages, newMessage]);
-  };
+  }, [socket, isConnected, roomId, currentUser]);
 
+  // Call timer
   useEffect(() => {
     const timer = setInterval(() => {
-      const [minutes, seconds] = callDuration.split(':').map(Number);
-      const totalSeconds = minutes * 60 + seconds + 1;
-      const newMinutes = Math.floor(totalSeconds / 60);
-      const newSeconds = totalSeconds % 60;
-      setCallDuration(
-        `${newMinutes.toString().padStart(2, '0')}:${newSeconds.toString().padStart(2, '0')}`
-      );
+      setCallDuration(prev => {
+        const [hours, minutes, seconds] = prev.split(':').map(Number);
+        let totalSeconds = hours * 3600 + minutes * 60 + seconds + 1;
+        const h = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
+        const m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
+        const s = (totalSeconds % 60).toString().padStart(2, '0');
+        return `${h}:${m}:${s}`;
+      });
     }, 1000);
     return () => clearInterval(timer);
-  }, [callDuration]);
+  }, []);
+
+  // Message handling
+  const handleSendMessage = (message) => {
+    const newMessage = {
+      id: Date.now().toString(),
+      ...message,
+      sender: currentUser.name,
+      avatar: currentUser.avatar,
+      status: 'sent'
+    };
+    setMessages(prev => [...prev, newMessage]);
+    socket?.emit('chatMessage', { roomId, message: newMessage });
+  };
+
+  // Participant management
+  const handleAddUser = () => {
+    // This would typically open a modal or form to add users
+    toast.info('Opening add participant dialog...');
+  };
+
+  const handleRefreshParticipants = () => {
+    socket?.emit('refreshParticipants', { roomId });
+    toast.info('Refreshing participants list...');
+  };
+
+  const handleSendReminder = () => {
+    const absentUsers = participants.filter(p => p.status === 'offline');
+    socket?.emit('sendReminder', { roomId, users: absentUsers });
+    toast.success(`Sending reminders to ${absentUsers.length} participants`);
+  };
 
   return (
     <div className="flex h-screen w-full bg-gray-50 overflow-hidden">
       {/* Sidebar */}
-      <Sidebar meetingTitle="Weekly Update" teamName="Design Team" onCallCount={participants.length} absentCount={3} />
+      <Sidebar
+        meetingTitle={meetingInfo.title}
+        teamName="Design Team"
+        onCallCount={participants.filter(p => p.status === 'online').length}
+        absentCount={participants.filter(p => p.status === 'offline').length}
+        onShowInfo={() => setShowMeetingInfo(true)}
+      />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         <div className="flex flex-1 overflow-hidden">
-          {/* Video Call area */}
-          <div className="flex-1 flex flex-col p-2 bg-white border-r border-gray-200">
-            <VideoCall mainParticipant={mainParticipant} participants={participants} callDuration={callDuration} />
+          {/* Video Call */}
+          <div className="flex-1 flex flex-col bg-white border-r border-gray-200">
+            <VideoCall
+              roomId={roomId}
+              user={currentUser}
+              participants={participants}
+              callDuration={callDuration}
+              onAddUser={handleAddUser}
+            />
           </div>
 
-          {/* Chat/Participants Panel */}
-          <div className="w-[400px] flex flex-col bg-white">
-            <ChatPanel
-              title="Group Chat"
-              messages={messages}
-              onSendMessage={handleSendMessage}
-              participants={participants}
-            />
+          {/* Right Panel */}
+          <div className="w-[320px] flex flex-col bg-white border-l border-gray-200">
+            <div className="flex items-center border-b">
+              <button
+                onClick={() => setSelectedTab('messages')}
+                className={cn(
+                  "flex-1 px-4 py-3 text-sm font-medium text-center transition-colors",
+                  selectedTab === 'messages' 
+                    ? "text-blue-600 border-b-2 border-blue-600" 
+                    : "text-gray-500 hover:text-gray-700"
+                )}
+              >
+                Messages
+              </button>
+              <button
+                onClick={() => setSelectedTab('participants')}
+                className={cn(
+                  "flex-1 px-4 py-3 text-sm font-medium text-center transition-colors",
+                  selectedTab === 'participants' 
+                    ? "text-blue-600 border-b-2 border-blue-600" 
+                    : "text-gray-500 hover:text-gray-700"
+                )}
+              >
+                Participants
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-hidden">
+              {selectedTab === 'participants' ? (
+                <ParticipantsList
+                  roomId={roomId}
+                  participants={participants}
+                  currentUser={currentUser}
+                  onRefresh={handleRefreshParticipants}
+                  onSendReminder={handleSendReminder}
+                />
+              ) : (
+                <ChatPanel
+                  roomId={roomId}
+                  messages={messages}
+                  participants={participants}
+                  currentUser={currentUser}
+                  onSendMessage={handleSendMessage}
+                />
+              )}
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Meeting Info Modal */}
+      {showMeetingInfo && (
+        <MeetingInfo
+          roomId={roomId}
+          title={meetingInfo.title}
+          description={meetingInfo.description}
+          scheduledTime={meetingInfo.scheduledTime}
+          participantsCount={participants.length + 1}
+          hostName={meetingInfo.hostName}
+          onClose={() => setShowMeetingInfo(false)}
+        />
+      )}
     </div>
   );
-};
+}
 
 export default Index;

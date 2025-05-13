@@ -31,5 +31,27 @@ export default defineConfig(({ mode }) => ({
     "paths": {
       "@/*": ["src/*"]
     }
+  },/* this is added in vite.config.js to send the request from api to localhost:3001
+  الـ proxy
+   API يسهّل التواصل بين الفرونت (8080) والباكند (3001) باستعمال هالبادئة.
+   -وقت تضغط "Login"، الفرونت يبعث POST إلى /api/auth/
+
+Vite يحوّلها تلقائيًا إلى http://localhost:3001/api/auth/ (باكند)
+
+باكند يرجع response حسب الـ email/password
+
+وكل شيء يخدم smoothly، من غير ما تحتاج تعمل fetch بـ URL كامل أو تقلق من CORS. */  
+
+  proxy: {
+    '/socket.io': {
+      target: 'http://localhost:3002',
+      ws: true,
+    },
+    '/api': {
+      target: 'http://localhost:3002',
+      changeOrigin: true,
+      secure: false,
+    },
+  
   }
 }));

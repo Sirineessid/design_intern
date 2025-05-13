@@ -1,13 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Paperclip, Smile, Send } from 'lucide-react';
 
-const MessageInput = ({ onSend }) => {
-  const [message, setMessage] = useState('');
-
+const MessageInput = ({ onSend, onInputChange, inputValue }) => {
   const handleSend = () => {
-    if (message.trim()) {
-      onSend(message);
-      setMessage('');
+    if (inputValue.trim()) {
+      onSend();
     }
   };
 
@@ -26,8 +23,8 @@ const MessageInput = ({ onSend }) => {
 
       <input
         type="text"
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
+        value={inputValue}
+        onChange={onInputChange}
         onKeyDown={handleKeyDown}
         placeholder="Type a message..."
         className="flex-1 bg-transparent outline-none px-2"
@@ -39,9 +36,9 @@ const MessageInput = ({ onSend }) => {
 
       <button
         onClick={handleSend}
-        disabled={!message.trim()}
+        disabled={!inputValue.trim()}
         className={`p-2 rounded-full ${
-          message.trim() ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-500'
+          inputValue.trim() ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-500'
         } transition duration-200`}
       >
         <Send size={20} />

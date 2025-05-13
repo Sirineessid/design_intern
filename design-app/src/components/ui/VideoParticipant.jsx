@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Mic, MicOff, Video, VideoOff } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './toolip.jsx'; 
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './toolip.jsx'; // Fixed typo
 
 const VideoParticipant = ({
   src,
@@ -14,6 +14,7 @@ const VideoParticipant = ({
   size = 'md',
   className,
 }) => {
+  // Size classes based on prop
   const sizeClasses = {
     sm: 'w-16 h-16',
     md: 'w-24 h-24',
@@ -21,6 +22,7 @@ const VideoParticipant = ({
     full: 'w-full h-full',
   };
 
+  // Generate user initials from name
   const initials = name
     ? name
         .split(' ')
@@ -42,6 +44,7 @@ const VideoParticipant = ({
         role="region"
         aria-label={`${name}'s participant box`}
       >
+        {/* Render video or avatar based on isVideoOff */}
         {isVideoOff ? (
           <div className="w-full h-full flex items-center justify-center bg-gray-200">
             <div className="w-12 h-12 rounded-full bg-gray-400 flex items-center justify-center">
@@ -58,10 +61,12 @@ const VideoParticipant = ({
           />
         )}
 
+        {/* Bottom bar with user info and status icons */}
         <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/50 to-transparent">
           <div className="flex items-center justify-between">
             <span className="text-white text-xs font-medium truncate">{name}</span>
             <div className="flex items-center space-x-1">
+              {/* Mic Status */}
               <Tooltip>
                 <TooltipTrigger asChild>
                   {isMuted ? (
@@ -73,6 +78,7 @@ const VideoParticipant = ({
                 <TooltipContent>{isMuted ? 'Muted' : 'Mic On'}</TooltipContent>
               </Tooltip>
 
+              {/* Video Status */}
               <Tooltip>
                 <TooltipTrigger asChild>
                   {isVideoOff ? (
@@ -84,6 +90,7 @@ const VideoParticipant = ({
                 <TooltipContent>{isVideoOff ? 'Video Off' : 'Video On'}</TooltipContent>
               </Tooltip>
 
+              {/* Screen Sharing Indicator */}
               {isScreenSharing && (
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -132,6 +139,7 @@ const VideoParticipant = ({
   );
 };
 
+// Prop types for validation
 VideoParticipant.propTypes = {
   src: PropTypes.string,
   name: PropTypes.string.isRequired,

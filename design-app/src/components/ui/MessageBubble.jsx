@@ -1,5 +1,6 @@
 import React from 'react';
-import { cn } from '../../lib/utils';
+import Avatar from './Avatar';
+import { format, isValid, parseISO } from 'date-fns';
 
 const MessageBubble = ({
   message,
@@ -7,42 +8,48 @@ const MessageBubble = ({
   time,
   isCurrentUser,
   avatar,
-  status = 'sent'
+  status
 }) => {
+  // Improved time formatting logic
+  const formattedTime = time ? (() => {
+    try {
+      // Try parsing as ISO string first
+      const date = typeof time === 'string' ? parseISO(time) : new Date(time);
+      return isValid(date) ? format(date, 'h:mm a') : '';
+    } catch (error) {
+      console.warn('Invalid time value:', time);
+      return '';
+    }
+  })() : '';
+
   return (
-    <div className={cn(
-      "flex items-end gap-2 mb-4",
-      isCurrentUser ? "justify-end" : "justify-start"
-    )}>
-      {!isCurrentUser && avatar && (
-        <div className="flex-shrink-0 w-8 h-8 rounded-full overflow-hidden">
-          <img src={avatar} alt={sender} className="w-full h-full object-cover" />
+    <div className={`flex items-start gap-3 ${isCurrentUser ? 'flex-row-reverse' : ''}`}>
+      <Avatar
+        src={avatar}
+        alt={sender}
+        size="sm"
+        status={status}
+        className={isCurrentUser ? 'ml-2' : 'mr-2'}
+      />
+      <div className={`flex flex-col ${isCurrentUser ? 'items-end' : 'items-start'}`}>
+        <div className="flex items-center gap-2 mb-1">
+          <span className={`text-xs text-gray-500 ${isCurrentUser ? 'order-2' : ''}`}>
+            {sender}
+          </span>
+          {formattedTime && <span className="text-xs text-gray-400">{formattedTime}</span>}
         </div>
-      )}
-      
-      <div className="flex flex-col">
-        <div className={cn(
-          "message-bubble",
-          isCurrentUser ? "message-bubble-sent" : "message-bubble-received"
-        )}>
-          {message}
-        </div>
-        
-        <div className={cn(
-          "text-xs px-2",
-          isCurrentUser ? "text-right text-gray-500" : "text-left text-gray-500"
-        )}>
-          {time}
+        <div
+          className={`
+            max-w-[70%] px-4 py-2 rounded-2xl
+            ${isCurrentUser
+              ? 'bg-blue-600 text-white rounded-tr-sm'
+              : 'bg-gray-100 text-gray-900 rounded-tl-sm'
+            }
+          `}
+        >
+          <p className="text-sm whitespace-pre-wrap break-words">{message}</p>
         </div>
       </div>
-      
-      {isCurrentUser && status === 'read' && (
-        <div className="flex-shrink-0 text-xs text-blue-500">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M2 12L8 18L22 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </div>
-      )}
     </div>
   );
 };

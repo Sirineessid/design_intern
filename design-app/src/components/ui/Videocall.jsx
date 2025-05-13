@@ -1,133 +1,248 @@
-import React, { useState } from 'react';
-import VideoParticipant from './VideoParticipant.jsx';
-import CallControls from './CallControls.jsx';
+import React, { useState, useRef, useEffect } from 'react';
+import { Mic, MicOff, Video, VideoOff, PhoneOff, Share2, Settings, Users, Volume2, UserPlus } from 'lucide-react';
+import VideoParticipant from './VideoParticipant';
+import { useSocket } from '../../context/SocketContext';
+import { toast } from 'sonner';
 import { cn } from '../../lib/utils';
 
 const VideoCall = ({
-  participants = [],
-  mainParticipant = {},
-  callDuration = '00:00',
+  roomId,
+  title = "UI/UX Design weekly update",
+  teamName = "Design Team",
+  user,
+  participants,
+  callDuration,
+  onAddUser
 }) => {
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
-  const [layout, setLayout] = useState('focus');
+  const [volume, setVolume] = useState(50);
+  const [showVolumeSlider, setShowVolumeSlider] = useState(false);
+  const videoRef = useRef(null);
+  const screenStreamRef = useRef(null);
+  const { socket } = useSocket();
 
-  const handleMicToggle = () => setIsMuted(!isMuted);
-  const handleVideoToggle = () => setIsVideoOff(!isVideoOff);
-  const handleScreenShareToggle = () => setIsScreenSharing(!isScreenSharing);
-  const handleLayoutChange = () => setLayout(layout === 'grid' ? 'focus' : 'grid');
-  const handleEndCall = () => console.log('End call');
-  const handleFullScreen = () => {
-    const elem = document.documentElement;
-    if (!document.fullscreenElement) {
-      elem.requestFullscreen().catch((err) => console.error(err));
-    } else {
-      document.exitFullscreen();
+  // Handle camera access
+  useEffect(() => {
+    const startVideo = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: true,
+          audio: true 
+        });
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch (error) {
+        console.error('Error accessing camera:', error);
+        toast.error('Could not access camera or microphone');
+      }
+    };
+    
+    if (!isVideoOff) {
+      startVideo();
+    }
+  }, [isVideoOff]);
+
+  // Handle screen sharing
+  const toggleScreenShare = async () => {
+    try {
+      if (!isScreenSharing) {
+        const screenStream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: true
+        });
+        screenStreamRef.current = screenStream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = screenStream;
+        }
+        setIsScreenSharing(true);
+        socket?.emit('screenShare', { roomId, isSharing: true });
+      } else {
+        if (screenStreamRef.current) {
+          screenStreamRef.current.getTracks().forEach(track => track.stop());
+        }
+        if (!isVideoOff) {
+          const camStream = await navigator.mediaDevices.getUserMedia({ 
+            video: true,
+            audio: true 
+          });
+          if (videoRef.current) {
+            videoRef.current.srcObject = camStream;
+          }
+        }
+        setIsScreenSharing(false);
+        socket?.emit('screenShare', { roomId, isSharing: false });
+      }
+    } catch (error) {
+      console.error('Error sharing screen:', error);
+      toast.error('Could not share screen');
     }
   };
 
-  const sortedParticipants = [...participants].sort((a, b) => b.isSpeaking - a.isSpeaking);
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+    socket?.emit('toggleAudio', { roomId, isMuted: !isMuted });
+  };
+
+  const toggleVideo = () => {
+    setIsVideoOff(!isVideoOff);
+    socket?.emit('toggleVideo', { roomId, isVideoOff: !isVideoOff });
+  };
+
+  const handleVolumeChange = (e) => {
+    setVolume(parseInt(e.target.value));
+  };
+
+  const endCall = () => {
+    // Implement call ending logic
+    toast.info('Ending call...');
+    socket?.emit('leaveRoom', { roomId });
+    // Additional cleanup...
+  };
 
   return (
-    <div className="relative h-full w-full flex flex-col">
-
-      {/* Top info: meeting info and call timer */}
-      <div className="flex items-center justify-between px-4 pt-2 pb-1">
-        <div className="text-lg font-semibold">{/* Meeting Title (optional) */}</div>
+    <div className="flex-1 flex flex-col bg-gray-900">
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 py-4 bg-gray-800">
+        <div>
+          <h1 className="text-lg font-semibold text-white">{title}</h1>
+          <p className="text-sm text-gray-400">{teamName}</p>
+        </div>
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1 text-sm text-gray-700">
-            <span className="font-medium">On-Call Participants:</span>
-            <span className="text-green-600">{participants.length}</span>
+          <div className="text-sm text-gray-400 recording-dot">
+            {callDuration}
           </div>
-          <div className="flex items-center gap-1 text-sm text-gray-700">
-            <span className="font-medium">Absent Participants:</span>
-            <span className="text-red-500">3</span>{/*you can make it dynamically   */}
+        </div>
+      </div>
+
+      {/* Participants Stats & Add User */}
+      <div className="px-6 py-3 bg-gray-800/50 border-b border-gray-700">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-300">On Call</span>
+              <span className="px-2 py-0.5 text-xs font-medium text-green-400 bg-green-400/20 rounded-full">
+                {participants.filter(p => p.status === 'online').length + 1}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-300">Absent</span>
+              <span className="px-2 py-0.5 text-xs font-medium text-red-400 bg-red-400/20 rounded-full">
+                {participants.filter(p => p.status === 'offline').length}
+              </span>
+            </div>
           </div>
-          <button className="bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 rounded-full">
-            + Add user to call
+          
+          <button 
+            onClick={onAddUser}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-400 bg-blue-400/20 rounded-full hover:bg-blue-400/30 transition-colors"
+          >
+            <UserPlus size={16} />
+            Add user to call
           </button>
         </div>
       </div>
 
       {/* Main Video Area */}
-      <div className="flex-1 relative flex items-center justify-center bg-gray-900 rounded-xl overflow-hidden animate-fade-in mt-2">
-        {/* Vertical Controls */}
-        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex flex-col gap-3">
-          <button onClick={handleMicToggle} className="bg-gray-700 p-3 rounded-full hover:bg-gray-600">
-            <img src="/icons/mic.svg" alt="Mic" className="h-5 w-5" />
-          </button>
-          <button onClick={handleVideoToggle} className="bg-gray-700 p-3 rounded-full hover:bg-gray-600">
-            <img src="/icons/video.svg" alt="Video" className="h-5 w-5" />
-          </button>
-          <button onClick={handleScreenShareToggle} className="bg-gray-700 p-3 rounded-full hover:bg-gray-600">
-            <img src="/icons/share.svg" alt="Screen Share" className="h-5 w-5" />
-          </button>
-          <button className="bg-gray-700 p-3 rounded-full hover:bg-gray-600">
-            <img src="/icons/chat.svg" alt="Chat" className="h-5 w-5" />
-          </button>
-        </div>
-
-        {/* Main Participant Video */}
-        <div className="w-full h-full">
-          <VideoParticipant 
-            src={mainParticipant.avatar}
-            name={mainParticipant.name}
-            isSpeaking={mainParticipant.isSpeaking}
-            isMuted={mainParticipant.isMuted}
-            isVideoOff={mainParticipant.isVideoOff}
-            isScreenSharing={mainParticipant.isScreenSharing}
-            size="full"
-            className={cn(
-              "transition-all duration-200",
-              mainParticipant.isSpeaking && "ring-4 ring-green-400"
+      <div className="flex-1 relative p-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 h-full">
+          {/* Main user video */}
+          <div className="col-span-2 row-span-2 relative rounded-xl overflow-hidden bg-gray-800">
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted={isMuted}
+              className={`w-full h-full object-cover ${isVideoOff ? 'hidden' : ''}`}
+            />
+            {isVideoOff && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-24 h-24 rounded-full bg-gray-700 flex items-center justify-center">
+                  <span className="text-2xl text-white">{user.name[0]}</span>
+                </div>
+              </div>
             )}
-          />
-        </div>
+          </div>
 
-        {/* Right side Participants */}
-        <div className="absolute right-4 top-1/2 transform -translate-y-1/2 space-y-3">
-          {sortedParticipants.slice(0, 5).map((participant) => (
+          {/* Participant videos */}
+          {participants.map((participant) => (
             <VideoParticipant
               key={participant.id}
-              src={participant.isVideoOff ? '/path/to/avatar-placeholder.png' : participant.avatar}
-              name={participant.isVideoOff ? participant.name[0] + participant.name[1] : participant.name}
-              isSpeaking={participant.isSpeaking}
+              src={participant.avatar}
+              name={participant.name}
               isMuted={participant.isMuted}
               isVideoOff={participant.isVideoOff}
               isScreenSharing={participant.isScreenSharing}
-              size="md"
-              className="transition-transform hover:scale-105"
+              isSpeaking={participant.isSpeaking}
             />
           ))}
-
-          {participants.length > 5 && (
-            <div className="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center text-white text-xs">
-              +{participants.length - 5} More 
-            </div>
-          )}
-        </div>
-
-        {/* Call Timer */}
-        <div className="absolute top-4 left-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded-lg text-xs">
-          {callDuration}
         </div>
       </div>
 
-      {/* Bottom Call Controls */}
-      <div className="flex justify-center py-4">
-        <CallControls
-          onMicToggle={handleMicToggle}
-          onVideoToggle={handleVideoToggle}
-          onScreenShareToggle={handleScreenShareToggle}
-          onLayoutChange={handleLayoutChange}
-          onEndCall={handleEndCall}
-          onFullScreen={handleFullScreen}
-          isMuted={isMuted}
-          isVideoOff={isVideoOff}
-          isScreenSharing={isScreenSharing}
-          callDuration={callDuration}
-        />
+      {/* Call Controls */}
+      <div className="px-6 py-4 bg-gray-800">
+        <div className="flex items-center justify-center gap-4">
+          {/* Mic Control */}
+          <button
+            onClick={toggleMute}
+            className={`call-control-button ${isMuted ? 'bg-red-500' : 'bg-gray-600'}`}
+          >
+            {isMuted ? <MicOff className="text-white" /> : <Mic className="text-white" />}
+          </button>
+
+          {/* Video Control */}
+          <button
+            onClick={toggleVideo}
+            className={`call-control-button ${isVideoOff ? 'bg-red-500' : 'bg-gray-600'}`}
+          >
+            {isVideoOff ? <VideoOff className="text-white" /> : <Video className="text-white" />}
+          </button>
+
+          {/* Screen Share */}
+          <button
+            onClick={toggleScreenShare}
+            className={`call-control-button ${isScreenSharing ? 'bg-blue-500' : 'bg-gray-600'}`}
+          >
+            <Share2 className="text-white" />
+          </button>
+
+          {/* Volume Control */}
+          <div className="relative">
+            <button
+              onClick={() => setShowVolumeSlider(!showVolumeSlider)}
+              className="call-control-button bg-gray-600"
+            >
+              <Volume2 className="text-white" />
+            </button>
+            {showVolumeSlider && (
+              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2">
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={volume}
+                  onChange={handleVolumeChange}
+                  className="volume-slider"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Settings */}
+          <button className="call-control-button bg-gray-600">
+            <Settings className="text-white" />
+          </button>
+
+          {/* End Call */}
+          <button
+            onClick={endCall}
+            className="call-control-button bg-red-500"
+          >
+            <PhoneOff className="text-white" />
+          </button>
+        </div>
       </div>
     </div>
   );
