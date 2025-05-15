@@ -9,7 +9,12 @@ const App = () => {
   const isAuthenticated = !!localStorage.getItem('token');
 
   return (
-    <Router>
+    <Router
+    future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
       <SocketProvider>
         <Routes>
           <Route 

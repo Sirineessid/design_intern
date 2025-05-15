@@ -15,7 +15,7 @@ const Auth = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
+      const endpoint = (isLogin ? '/api/auth/login' : '/api/auth/register');
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
@@ -24,7 +24,12 @@ const Auth = () => {
         body: JSON.stringify(formData),
       });
 
-      const data = await response.json();
+       let data = {};
+    try {
+      data = await response.json(); // might fail on 404
+    } catch (err) {
+      console.warn('No JSON body returned');
+    }
 
       if (response.ok) {
         localStorage.setItem('token', data.token);
@@ -35,6 +40,7 @@ const Auth = () => {
         toast.error(data.message || 'Authentication failed');
       }
     } catch (error) {
+      console.error('Authentication error:', error);
       toast.error('An error occurred. Please try again.');
     }
   };
