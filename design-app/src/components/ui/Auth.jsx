@@ -1,7 +1,11 @@
+// src/components/ui/Auth.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { cn } from '../../lib/utils';
+
+// Read the backend base URL from Vite env (fall back to localhost:3001)
+const BACKEND = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -14,42 +18,45 @@ const Auth = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Build full endpoint URL
+    const endpoint = isLogin
+      ? `${BACKEND}/api/auth/login`
+      : `${BACKEND}/api/auth/register`;
+
     try {
-      const endpoint = (isLogin ? '/api/auth/login' : '/api/auth/register');
       const response = await fetch(endpoint, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
-       let data = {};
-    try {
-      data = await response.json(); // might fail on 404
-    } catch (err) {
-      console.warn('No JSON body returned');
-    }
+      // Safely parse JSON (404 or empty body won’t throw)
+      let data = {};
+      try {
+        data = await response.json();
+      } catch {
+        console.warn('No JSON body returned');
+      }
 
       if (response.ok) {
+        // On success, store and navigate
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
         toast.success(isLogin ? 'Welcome back!' : 'Account created successfully!');
         navigate('/meeting');
       } else {
-        toast.error(data.message || 'Authentication failed');
+        // Show error coming from backend or a fallback message
+        toast.error(data.message || `Authentication failed (${response.status})`);
       }
-    } catch (error) {
-      console.error('Authentication error:', error);
+    } catch (err) {
+
       toast.error('An error occurred. Please try again.');
     }
   };
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   return (
@@ -73,53 +80,47 @@ const Auth = () => {
           <div className="rounded-md shadow-sm -space-y-px">
             {!isLogin && (
               <div>
-                <label htmlFor="name" className="sr-only">
-                  Full Name
-                </label>
+                <label htmlFor="name" className="sr-only">Full Name</label>
                 <input
                   id="name"
                   name="name"
                   type="text"
                   required={!isLogin}
-                  className={cn(
-                    "appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm",
-                    !isLogin ? "rounded-t-md" : ""
-                  )}
                   placeholder="Full Name"
+                  className={cn(
+                    'appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm',
+                    !isLogin ? 'rounded-t-md' : ''
+                  )}
                   value={formData.name}
                   onChange={handleChange}
                 />
               </div>
             )}
             <div>
-              <label htmlFor="email" className="sr-only">
-                Email address
-              </label>
+              <label htmlFor="email" className="sr-only">Email address</label>
               <input
                 id="email"
                 name="email"
                 type="email"
                 required
-                className={cn(
-                  "appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm",
-                  isLogin ? "rounded-t-md" : ""
-                )}
                 placeholder="Email address"
+                className={cn(
+                  'appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm',
+                  isLogin ? 'rounded-t-md' : ''
+                )}
                 value={formData.email}
                 onChange={handleChange}
               />
             </div>
             <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
+              <label htmlFor="password" className="sr-only">Password</label>
               <input
                 id="password"
                 name="password"
                 type="password"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                 placeholder="Password"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 value={formData.password}
                 onChange={handleChange}
               />
@@ -129,7 +130,7 @@ const Auth = () => {
           <div>
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {isLogin ? 'Sign in' : 'Sign up'}
             </button>
@@ -140,4 +141,4 @@ const Auth = () => {
   );
 };
 
-export default Auth; 
+export default Auth;

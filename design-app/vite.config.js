@@ -51,7 +51,7 @@ Vite يحوّلها تلقائيًا إلى http://localhost:3001/api/auth/ (ب�
       target: 'http://localhost:3001',
       changeOrigin: true,
       secure: false,
-      rewrite: (path) => path.replace(/^\/api/, '/api')
+      rewrite: (path) => path
     },
    
   }

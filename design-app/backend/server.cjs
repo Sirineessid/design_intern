@@ -16,7 +16,14 @@ dotenv.config();
 
 // Initialize Express app
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:8081', 'http://localhost:8083'],
+  methods: ['GET','POST','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization'],
+  credentials: true,
+}
+
+));
 app.use(express.json());
 
 // MongoDB Connection
@@ -29,7 +36,7 @@ mongoose.connect(MONGO_URI, {
 
 // CORS settings for React frontend
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'http://localhost:8083');
+  res.header('Access-Control-Allow-Origin', 'http://localhost:8081');
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.header('Access-Control-Allow-Credentials', 'true');
