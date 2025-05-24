@@ -9,6 +9,7 @@ import { useSocket } from '../context/SocketContext';
 import { toast } from 'sonner';
 import '../index.css';
 import { cn } from '../lib/utils';
+import { useWhisper } from '@chengsokdara/use-whisper';
 
 function Index() {
   const [selectedTab, setSelectedTab] = useState('messages');

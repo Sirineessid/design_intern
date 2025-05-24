@@ -1,3 +1,4 @@
+// src/components/ui/ParticipantsList.jsx
 import React from 'react';
 import { RefreshCw, Mail, Mic, MicOff, Video, VideoOff } from 'lucide-react';
 import Avatar from './Avatar';
@@ -67,37 +68,35 @@ const ParticipantsList = ({
             <div 
               key={participant.id} 
               className={cn(
-                "flex items-center gap-3 p-3 rounded-lg transition-colors",
+                "flex flex-col gap-2 p-3 rounded-lg transition-colors",
                 participant.isSpeaking ? "bg-blue-50" : "hover:bg-gray-50"
               )}
             >
-              <Avatar 
-                src={participant.avatar} 
-                alt={participant.name}
-                status={participant.status}
-                size="sm"
-              />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
-                  {participant.name}
-                  {participant.id === currentUser?.id && " (You)"}
-                </p>
-                <div className="flex items-center gap-2 mt-1">
-                  {participant.isMuted ? (
-                    <MicOff size={14} className="text-red-500" />
-                  ) : (
-                    <Mic size={14} className="text-gray-400" />
-                  )}
-                  {participant.isVideoOff ? (
-                    <VideoOff size={14} className="text-red-500" />
-                  ) : (
-                    <Video size={14} className="text-gray-400" />
-                  )}
-                  {participant.isSpeaking && (
-                    <span className="text-xs text-blue-600">Speaking</span>
-                  )}
+              <div className="flex items-center gap-3">
+                <Avatar 
+                  src={participant.avatar} 
+                  alt={participant.name}
+                  status={participant.status}
+                  size="sm"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {participant.name}
+                    {participant.id === currentUser?.id && " (You)"}
+                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    {participant.isMuted ? <MicOff size={14} className="text-red-500" /> : <Mic size={14} className="text-gray-400" />}
+                    {participant.isVideoOff ? <VideoOff size={14} className="text-red-500" /> : <Video size={14} className="text-gray-400" />}
+                    {participant.isSpeaking && <span className="text-xs text-blue-600">Speaking</span>}
+                  </div>
                 </div>
               </div>
+              {/* Live transcription */}
+              {participant.transcription && (
+                <p className="text-xs text-gray-600 italic px-4">
+                  "{participant.transcription}"
+                </p>
+              )}
             </div>
           ))}
 

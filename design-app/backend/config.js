@@ -4,10 +4,7 @@ const envConfig = require('./env.config');
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(envConfig.mongodbUri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    await mongoose.connect(envConfig.mongodbUri, );
     console.log('MongoDB connected');
   } catch (err) {
     console.error(err.message);

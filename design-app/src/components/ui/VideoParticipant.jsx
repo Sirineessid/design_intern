@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { Mic, MicOff, Video, VideoOff } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './toolip.jsx'; // Fixed typo
-
+import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 const VideoParticipant = ({
   src,
   name = 'Unknown',
@@ -31,6 +31,20 @@ const VideoParticipant = ({
         .join('')
         .toUpperCase()
     : 'U';
+  const { transcript, listening, resetTranscript } = useSpeechRecognition();
+ eEffect(() => {
+    if (!isMuted && SpeechRecognition.browserSupportsSpeechRecognition()) {
+      SpeechRecognition.startListening({ continuous: true });
+    } else {
+      SpeechRecognition.stopListening();
+    }
+
+    return () => {
+      SpeechRecognition.stopListening();
+      resetTranscript();
+    };
+  }, [isMuted]);
+
 
   return (
     <TooltipProvider>
@@ -134,6 +148,12 @@ const VideoParticipant = ({
             </div>
           </div>
         </div>
+         {/* Transcription Display */}
+        {!isMuted && transcript && (
+          <div className="absolute bottom-12 left-0 right-0 px-2 text-white text-xs bg-black bg-opacity-50 rounded">
+            {transcript}
+          </div>
+        )}
       </div>
     </TooltipProvider>
   );

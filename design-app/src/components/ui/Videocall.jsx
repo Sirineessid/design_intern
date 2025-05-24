@@ -4,6 +4,8 @@ import VideoParticipant from './VideoParticipant';
 import { useSocket } from '../../context/SocketContext';
 import { toast } from 'sonner';
 import { cn } from '../../lib/utils';
+import { uploadToIpfs as storeRecording } from '../../ipfs/ipfs.uploader';
+import { grantAccess } from '../../blockchain/contractApi';
 
 const VideoCall = ({
   roomId,
@@ -21,6 +23,8 @@ const VideoCall = ({
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
   const videoRef = useRef(null);
   const screenStreamRef = useRef(null);
+  const audioStreamRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
   const { socket } = useSocket();
 
   // Handle camera access
@@ -34,6 +38,8 @@ const VideoCall = ({
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
         }
+        audioStreamRef.current = stream;
+        startRecording(stream);
       } catch (error) {
         console.error('Error accessing camera:', error);
         toast.error('Could not access camera or microphone');
@@ -44,6 +50,31 @@ const VideoCall = ({
       startVideo();
     }
   }, [isVideoOff]);
+    const startRecording = (stream) => {
+    const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+    mediaRecorderRef.current = mediaRecorder;
+
+    mediaRecorder.addEventListener('dataavailable', (event) => {
+      if (event.data.size > 0 && socket) {
+        socket.emit('audio-chunk', { roomId, chunk: event.data });
+      }
+    });
+
+    mediaRecorder.start(1000); // Send audio chunks every second
+  };
+ useEffect(() => {
+    if (socket) {
+      socket.on('transcription', ({ text }) => {
+        setTranscription((prev) => prev + ' ' + text);
+      });
+    }
+
+    return () => {
+      if (socket) {
+        socket.off('transcription');
+      }
+    };
+  }, [socket]);
 
   // Handle screen sharing
   const toggleScreenShare = async () => {
@@ -95,11 +126,16 @@ const VideoCall = ({
     setVolume(parseInt(e.target.value));
   };
 
-  const endCall = () => {
+  async function onCallEnd(){
     // Implement call ending logic
     toast.info('Ending call...');
     socket?.emit('leaveRoom', { roomId });
-    // Additional cleanup...
+    //generate blob
+     const blob = new Blob(recordedChunks, { type: 'video/webm' });
+     //store encrypt to ipfs 
+     const cid = await storeRecording(blob, encryptionKey);
+     //grant blockchain access 
+     await grantAccess(cid, participants);
   };
 
   return (
@@ -237,15 +273,23 @@ const VideoCall = ({
 
           {/* End Call */}
           <button
-            onClick={endCall}
+            onClick={onCallEnd}
             className="call-control-button bg-red-500"
           >
             <PhoneOff className="text-white" />
           </button>
         </div>
       </div>
+     <div className="flex-1 flex flex-col bg-gray-900">
+      {/* Existing UI components */}
+      {/* Display Transcription */}
+      <div className="px-6 py-2 bg-gray-800 text-white">
+        <h2 className="text-sm font-semibold">Live Transcription:</h2>
+        <p className="text-sm">{transcription}</p>
+      </div>
+      {/* Existing UI components */}
     </div>
-  );
-};
-
+  </div>
+);
+}
 export default VideoCall;
